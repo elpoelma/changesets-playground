@@ -2,16 +2,14 @@ import { execa } from "execa";
 import { program } from "commander";
 import readline from "readline/promises";
 
-
-
 const prompt = readline.createInterface({
   input: process.stdin,
   output: process.stdout,
 });
 
-async function yesNoQuestion(question: string, { defaultAnswer = false } = {}){
+async function yesNoQuestion(question: string, { defaultAnswer = false } = {}) {
   const answer = (await prompt.question(`${question} (Y/n) `)).trim();
-  return answer ? (answer === 'Y' || answer === 'y') : defaultAnswer;
+  return answer ? answer === "Y" || answer === "y" : defaultAnswer;
 }
 // const gitDiffResult = await execa({
 //   reject: false,
@@ -42,10 +40,10 @@ if (!shouldCommit) {
 }
 
 const stageResult = await execa({
-  reject: false
+  reject: false,
 })`git add . --all`;
 
-if(stageResult.failed){
+if (stageResult.failed) {
   console.error(stageResult.stderr);
   process.exit(1);
 }
@@ -84,6 +82,8 @@ if (pushResult.failed) {
   console.error(pushResult.stderr);
   process.exit(1);
 }
+
+console.log(pushResult.stdout);
 
 const shouldRelease = await yesNoQuestion("Release to Github?");
 if (!shouldRelease) {
