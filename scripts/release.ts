@@ -28,6 +28,8 @@ if (statusResult.failed) {
   process.exit(1);
 }
 
+console.log(statusResult.stdout);
+
 const versionResult = await execa({ reject: false })`pnpm changeset version`;
 if (versionResult.failed) {
   console.error(versionResult.stderr);
