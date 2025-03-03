@@ -1,6 +1,7 @@
 {
   "name": "changesets-playground",
   "description": "A playground to test out changesets ",
+  "private": true,
   "main": "index.js",
   "scripts": {},
   "repository": {
