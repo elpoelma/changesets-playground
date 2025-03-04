@@ -133,7 +133,6 @@ const commitResult = await execa({
   reject: false,
 })`git commit -m ${"Version packages"}`;
 
-console.log(commitResult.failed);
 if (commitResult.failed) {
   console.error(commitResult.stderr);
   process.exit(1);
