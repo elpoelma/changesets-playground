@@ -128,23 +128,10 @@ async function getRemote() {
   return branch ? getRemoteForBranch(branch) : null;
 }
 
-function parseGitUrl(url: string) {
-  const parsedUrl = GitUrlParse(url);
-  const {
-    owner,
-    resource: host,
-    name: project,
-    protocol,
-    href: remote,
-  } = parsedUrl;
-  const repository = `${owner}/${project}`;
-  return { host, owner, project, protocol, remote, repository };
-}
-
-export async function getRepo() {
+export async function getRepoInfo() {
   const remote = (await getRemote()) ?? "origin";
-  const url = await execa`git remote get-url ${remote}`;
-  return parseGitUrl(url.stdout);
+  const url = (await execa`git remote get-url ${remote}`).stdout;
+  return GitUrlParse(url)
 }
 
 export async function createRelease(
@@ -163,13 +150,13 @@ export async function createRelease(
       `Could not find changelog entry for ${pkg.packageJson.name}@${pkg.packageJson.version}`
     );
   }
-  const { owner, repository } = await getRepo();
+  const { owner, name } = await getRepoInfo();
   const response = await octokit.rest.repos.createRelease({
     name: tagName,
     tag_name: tagName,
     body: changelogEntry.content,
     prerelease: pkg.packageJson.version.includes("-"),
-    repo: repository,
+    repo: name,
     owner,
   });
   return response;
