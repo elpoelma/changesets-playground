@@ -128,7 +128,7 @@ async function getRemote() {
   return branch ? getRemoteForBranch(branch) : null;
 }
 
-function parseGitUrl(url) {
+function parseGitUrl(url: string) {
   const parsedUrl = GitUrlParse(url);
   const {
     owner,
@@ -144,7 +144,7 @@ function parseGitUrl(url) {
 export async function getRepo() {
   const remote = (await getRemote()) ?? "origin";
   const url = await execa`git remote get-url ${remote}`;
-  return parseGitUrl(url);
+  return parseGitUrl(url.stdout);
 }
 
 export async function createRelease(
