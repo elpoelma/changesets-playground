@@ -1,27 +1,47 @@
 import { execa } from "execa";
-import { program } from "commander";
 import readline from "readline/promises";
+import getReleasePlan from "@changesets/get-release-plan";
+import {
+  createRelease,
+  determinePackagesToRelease,
+  yesNoQuestion,
+} from "./utils";
+import { Octokit } from "octokit";
+
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+
+if (!GITHUB_TOKEN) {
+  console.error("Please provided the GITHUB_TOKEN environment variable");
+  process.exit(1);
+}
+
+const octokit = new Octokit({ auth: GITHUB_TOKEN });
 
 const prompt = readline.createInterface({
   input: process.stdin,
   output: process.stdout,
 });
 
-async function yesNoQuestion(question: string, { defaultAnswer = false } = {}) {
-  const answer = (await prompt.question(`${question} (Y/n) `)).trim();
-  return answer ? answer === "Y" || answer === "y" : defaultAnswer;
+const gitDiffResult = await execa({
+  reject: false,
+})`git diff HEAD --quiet`;
+
+if (gitDiffResult.failed) {
+  console.error(
+    "You have outstanding changes in your working directory. Please commit or stash them first before proceeding."
+  );
+  process.exit(1);
 }
-// const gitDiffResult = await execa({
-//   reject: false,
-// })`git diff --quiet && git diff --cached --quiet`;
-// if (gitDiffResult.failed) {
-//   console.error(
-//     "You have outstanding changes in your working directory. Please commit or revert them first before proceeding."
-//   );
-//   process.exit(1);
-// }
 
 console.log("Preparing to version packages...");
+
+const releasePlan = await getReleasePlan(process.cwd());
+
+if (releasePlan.changesets.length === 0) {
+  console.error("No changesets found...");
+  process.exit(1);
+}
+
 const statusResult = await execa({ reject: false })`pnpm changeset status`;
 if (statusResult.failed) {
   console.error(statusResult.stderr);
@@ -36,7 +56,9 @@ if (versionResult.failed) {
   process.exit(1);
 }
 
-const shouldCommit = await yesNoQuestion("Commit ?", { defaultAnswer: true });
+const shouldCommit = await yesNoQuestion(prompt, "Commit ?", {
+  defaultAnswer: true,
+});
 if (!shouldCommit) {
   process.exit(0);
 }
@@ -60,7 +82,9 @@ if (commitResult.failed) {
   process.exit(1);
 }
 
-const shouldTag = await yesNoQuestion("Create tags?", { defaultAnswer: true });
+const shouldTag = await yesNoQuestion(prompt, "Create tags?", {
+  defaultAnswer: true,
+});
 if (!shouldTag) {
   process.exit(0);
 }
@@ -72,7 +96,7 @@ if (tagResult.failed) {
   process.exit(1);
 }
 
-const shouldPush = await yesNoQuestion("Push to git forge?", {
+const shouldPush = await yesNoQuestion(prompt, "Push to git forge?", {
   defaultAnswer: true,
 });
 if (!shouldPush) {
@@ -87,7 +111,40 @@ if (pushResult.failed) {
 
 console.log(pushResult.stdout);
 
-const shouldRelease = await yesNoQuestion("Release to Github?");
+const shouldRelease = await yesNoQuestion(prompt, "Release to Github?");
 if (!shouldRelease) {
   process.exit(1);
 }
+
+const packagesToRelease = await determinePackagesToRelease(tagResult.stdout);
+
+const releases: string[] = [];
+for (const { pkg, tagName } of packagesToRelease) {
+  try {
+    const releaseResponse = await createRelease(octokit, {
+      pkg,
+      tagName,
+    });
+    if (!releaseResponse) {
+      console.error(
+        `Something went wrong while releasing ${pkg.packageJson.name}`
+      );
+      process.exit(1);
+    }
+    releases.push(releaseResponse.url);
+  } catch (e) {
+    console.error(e);
+    console.error(
+      `Something went wrong while releasing ${pkg.packageJson.name}`
+    );
+    process.exit(1);
+  }
+}
+
+console.log('Github releases: ')
+console.log('-------------------')
+for (const release of releases) {
+  console.log(`🔗 ${release}`);
+}
+console.log(`\n`);
+console.log(`Release successful! 🚀`)
