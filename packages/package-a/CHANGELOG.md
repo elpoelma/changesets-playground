@@ -1,5 +1,11 @@
 # package-a
 
+## 0.3.0
+
+### Minor Changes
+
+- [`1bf1a6f`](https://github.com/elpoelma/changesets-playground/commit/1bf1a6fda9e0edf4a1ebdbe191d2fbed301b7afa) Thanks [@elpoelma](https://github.com/elpoelma)! - Test changeset 4
+
 ## 0.2.0
 
 ### Minor Changes
