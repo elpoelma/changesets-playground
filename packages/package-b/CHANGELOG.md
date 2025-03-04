@@ -1,5 +1,11 @@
 # package-b
 
+## 1.1.0
+
+### Minor Changes
+
+- [`14930d0`](https://github.com/elpoelma/changesets-playground/commit/14930d07c930b0aea57bec151732ad45216cef75) Thanks [@elpoelma](https://github.com/elpoelma)! - Sample changeset 5
+
 ## 1.0.1
 
 ### Patch Changes
