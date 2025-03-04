@@ -125,12 +125,6 @@ for (const { pkg, tagName } of packagesToRelease) {
       pkg,
       tagName,
     });
-    if (!releaseResponse) {
-      console.error(
-        `Something went wrong while releasing ${pkg.packageJson.name}`
-      );
-      process.exit(1);
-    }
     releases.push(releaseResponse.url);
   } catch (e) {
     console.error(e);
@@ -141,10 +135,10 @@ for (const { pkg, tagName } of packagesToRelease) {
   }
 }
 
-console.log('Github releases: ')
-console.log('-------------------')
+console.log("Github releases: ");
+console.log("-------------------");
 for (const release of releases) {
   console.log(`🔗 ${release}`);
 }
 console.log(`\n`);
-console.log(`Release successful! 🚀`)
+console.log(`Release successful! 🚀`);

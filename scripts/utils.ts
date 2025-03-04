@@ -8,7 +8,7 @@ import path from "node:path";
 import readline from "readline/promises";
 import { Octokit } from "octokit";
 import { execa } from "execa";
-import GitUrlParse from 'git-url-parse';
+import GitUrlParse from "git-url-parse";
 
 export async function determinePackagesToRelease(changesetTagOutput: string) {
   const packagesToRelease: { pkg: Package; tagName: string }[] = [];
@@ -130,7 +130,13 @@ async function getRemote() {
 
 function parseGitUrl(url) {
   const parsedUrl = GitUrlParse(url);
-  const { owner, resource: host, name: project, protocol, href: remote } = parsedUrl;
+  const {
+    owner,
+    resource: host,
+    name: project,
+    protocol,
+    href: remote,
+  } = parsedUrl;
   const repository = `${owner}/${project}`;
   return { host, owner, project, protocol, remote, repository };
 }
@@ -145,40 +151,28 @@ export async function createRelease(
   octokit: Octokit,
   { pkg, tagName }: { pkg: Package; tagName: string }
 ) {
-  try {
-    let changelogFileName = path.join(pkg.dir, "CHANGELOG.md");
+  let changelogFileName = path.join(pkg.dir, "CHANGELOG.md");
 
-    let changelog = await fs.readFile(changelogFileName, "utf8");
+  let changelog = await fs.readFile(changelogFileName, "utf8");
 
-    let changelogEntry = getChangelogEntry(changelog, pkg.packageJson.version);
-    if (!changelogEntry) {
-      // we can find a changelog but not the entry for this version
-      // if this is true, something has probably gone wrong
-      throw new Error(
-        `Could not find changelog entry for ${pkg.packageJson.name}@${pkg.packageJson.version}`
-      );
-    }
-    const { owner, repository } = await getRepo();
-    const response = await octokit.rest.repos.createRelease({
-      name: tagName,
-      tag_name: tagName,
-      body: changelogEntry.content,
-      prerelease: pkg.packageJson.version.includes("-"),
-      repo: repository,
-      owner,
-    });
-    return response;
-  } catch (err) {
-    // if we can't find a changelog, the user has probably disabled changelogs
-    if (
-      err &&
-      typeof err === "object" &&
-      "code" in err &&
-      err.code !== "ENOENT"
-    ) {
-      throw err;
-    }
+  let changelogEntry = getChangelogEntry(changelog, pkg.packageJson.version);
+  if (!changelogEntry) {
+    // we can find a changelog but not the entry for this version
+    // if this is true, something has probably gone wrong
+    throw new Error(
+      `Could not find changelog entry for ${pkg.packageJson.name}@${pkg.packageJson.version}`
+    );
   }
+  const { owner, repository } = await getRepo();
+  const response = await octokit.rest.repos.createRelease({
+    name: tagName,
+    tag_name: tagName,
+    body: changelogEntry.content,
+    prerelease: pkg.packageJson.version.includes("-"),
+    repo: repository,
+    owner,
+  });
+  return response;
 }
 
 export async function yesNoQuestion(
