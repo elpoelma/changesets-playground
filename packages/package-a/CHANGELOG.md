@@ -1,5 +1,11 @@
 # package-a
 
+## 1.1.0
+
+### Minor Changes
+
+- [`d83832c`](https://github.com/elpoelma/changesets-playground/commit/d83832ca1ac4d14923343ba49a80c313edbae8b6) Thanks [@elpoelma](https://github.com/elpoelma)! - Test
+
 ## 1.0.0
 
 ### Major Changes
