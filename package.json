@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "release": "tsx scripts/release.ts"
+    "release": "tsx scripts/release.ts",
+    "dev-release": "tsx scripts/dev-release.ts"
   },
   "repository": {
     "type": "git",
